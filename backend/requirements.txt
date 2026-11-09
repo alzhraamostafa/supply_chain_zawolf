@@ -1,0 +1,14 @@
+# Web API
+fastapi
+uvicorn[standard]
+
+# Database ORM
+sqlalchemy
+
+# Application configuration
+pydantic-settings
+python-dotenv
+
+# Testing
+pytest
+httpx
