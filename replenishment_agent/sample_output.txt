@@ -1,0 +1,89 @@
+
+==============================================================================
+STEP 1: Before any stock exists, the agent must NOT order (stock is unknown, not zero)
+==============================================================================
+alerts: 0   materials with unknown stock: 29
+
+==============================================================================
+STEP 2: Give the sandbox warehouse a demo starting stock (invented data)
+==============================================================================
+demo stock created for 29 materials
+
+==============================================================================
+STEP 3: Agent run: alerts, draft purchase request, draft supplier messages
+==============================================================================
+REPLENISHMENT REPORT  (data as of 2026-06-30, environment replenishment_demo)
+
+14 material(s) need ordering. Estimated cost 7,573,429 EGP (range 2,812,786 - 11,869,440); approval: finance_director
+severity  material                       cover d lead d      order qty supplier   order by           EGP
+critical  Carbomer_Ultrez_20                 7.9     10       1,000 kg SUP-EG-04  2026-06-30     278,460
+critical  Cetyl_Stearyl_Alcohol              4.9      9       5,000 kg SUP-EG-02  2026-06-30   1,494,700
+critical  Coco_Amido_Betaine_CAPB            3.4     11       1,500 kg SUP-EG-04  2026-06-30     415,365
+critical  Fragrance_Cool_Musk                6.2     12         400 kg SUP-EG-03  2026-06-30      83,528
+critical  Fragrance_Royal_Oud                6.2     13         600 kg SUP-EG-03  2026-06-30     110,256
+critical  Fragrance_Specialty_Compound       6.5     13       1,000 kg SUP-EG-03  2026-06-30     161,330
+critical  Fragrance_Vanilla_Glow_Fine        8.1     12         200 kg SUP-EG-03  2026-06-30      28,790
+critical  PK-PLASTIC-TUBE-125ML              4.3      7     30,000 pcs SUP-EG-06  2026-06-30     463,500
+critical  SLES_70_Surfactant                 6.6      8       5,000 kg SUP-EG-02  2026-06-30     934,350
+warning   Citric_Acid_Anhydrous              6.9      6       1,000 kg SUP-EG-01  2026-06-30     299,350
+warning   PK-ALUM-TIN-40G                   10.6      8     75,000 pcs SUP-EG-05  2026-07-02   1,116,000
+warning   PK-ALUM-TUBE-10G                  12.5      9    150,000 pcs SUP-EG-05  2026-07-03     975,000
+warning   PK-HDPE-BOTTLE-500ML               9.4      6     40,000 pcs SUP-EG-07  2026-07-03     381,600
+warning   PK-ROLLON-BOTTLE-50ML             13.9      9     80,000 pcs SUP-EG-09  2026-07-04     831,200
+
+Draft purchase request PR-3-00002 created (waiting for a human decision).
+No purchasing history, needs sourcing: Aloe_Vera_Extract_10X, Aluminum_Chlorohydrate_ACH_50, Antibacterial_PCMX, Aqua_Demineralized, Benzophenone_4_UV_Stabilizer, Coco_Glucoside ... (39 materials)
+
+Caveats: Recorded orders are not true demand (lost sales are not recorded). | Product size and density are unverified in the source; quantities are scenario estimates.
+
+--- draft message to SUP-EG-04 (en, source=template) ---
+Dear Clariant Chemicals Egypt (كلاريانت ايجيبت),
+
+Regarding purchase request PR-3-00002, please confirm your unit price, delivery date and minimum order quantity for the following items:
+- Carbomer_Ultrez_20: 1,000 kg - needed by 2026-07-10
+- Coco_Amido_Betaine_CAPB: 1,500 kg - needed by 2026-07-11
+
+This is a draft request for quotation and does not commit us to a purchase.
+
+Best regards,
+
+--- draft message to SUP-EG-04 (ar, source=template) ---
+السادة / Clariant Chemicals Egypt (كلاريانت ايجيبت)
+تحية طيبة،
+
+بخصوص طلب الشراء رقم PR-3-00002، نرجو التكرم بإفادتنا بسعر الوحدة وموعد التوريد وأقل كمية للطلب للأصناف التالية:
+- Carbomer_Ultrez_20: 1,000 كجم - مطلوب بحلول 2026-07-10
+- Coco_Amido_Betaine_CAPB: 1,500 كجم - مطلوب بحلول 2026-07-11
+
+هذه رسالة مسودة لطلب عرض سعر، ولا تمثل التزامًا بالشراء.
+
+شكرًا لتعاونكم.
+
+==============================================================================
+STEP 4: Rules: the agent cannot approve its own request
+==============================================================================
+REFUSED: maker and checker must be different people
+
+==============================================================================
+STEP 5: Human 1 approves the purchase request; the agent drafts one PO per supplier
+==============================================================================
+decision: approved
+draft purchase orders: [10, 11, 12, 13, 14, 15, 16, 17]
+
+==============================================================================
+STEP 6: Human 2 approves the PO; the send is SIMULATED
+==============================================================================
+REFUSED: maker and checker must be different people
+  replenishment_agent    -> draft      drafted from PR-3-00002
+  finance_checker        -> approved   approved
+  finance_checker        -> sent       SIMULATED SEND - no external transmission
+
+==============================================================================
+STEP 7: Run again: open requests and orders count as supply, so nothing is duplicated
+==============================================================================
+new alerts: 0   new request created: None
+
+==============================================================================
+STEP 8: Goods arrive (simulated): stock rises through the ledger
+==============================================================================
+alerts after receipt: 0

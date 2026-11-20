@@ -1,0 +1,6 @@
+{
+  "_note": "alias -> canonical name. Output of the material matching step (L2). A human must confirm every line.",
+  "Sodium_Chloride_Pure": "Sodium_Chloride",
+  "PK-ALUM-TUBE-10ML": "PK-ALUM-TUBE-10G",
+  "PK-ALUM-TUBE-25ML": "PK-ALUM-TUBE-25G"
+}

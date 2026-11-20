@@ -1,0 +1,14 @@
+{
+  "_note": "ASSUMPTIONS for the simulation. Replace with the real procurement policy.",
+  "service_level_z": 1.645,
+  "review_days": 7,
+  "window_weeks": 8,
+  "sigma_weeks": 13,
+  "apply_scrap_allowance": true,
+  "autonomy_level": 1,
+  "approval_bands_egp": [
+    {"max": 100000,  "role": "buyer"},
+    {"max": 1000000, "role": "procurement_manager"},
+    {"max": null,    "role": "finance_director"}
+  ]
+}
