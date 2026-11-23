@@ -220,6 +220,11 @@ def send_purchase_order_simulated(con, po_id, by):
     _po_status_change(con, po_id, "sent", by, "SIMULATED SEND - no external transmission", ("approved",))
 
 
+def mark_purchase_order_sent(con, po_id, by, reason):
+    """Status change after the PO message was handed to the mailer (reason says email / dry run / manual)."""
+    _po_status_change(con, po_id, "sent", by, reason, ("approved",))
+
+
 def receive_purchase_order(con, po_id, location_id, by, accepted: dict | None = None, delivery_ref="SIM-DELIVERY"):
     """Simulated delivery. accepted = {po_line_id: qty}; default = full quantity. Posts ledger receipts."""
     po = con.execute("SELECT * FROM purchase_orders WHERE purchase_order_id=?", (po_id,)).fetchone()

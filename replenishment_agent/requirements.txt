@@ -2,5 +2,11 @@
 pandas>=2.0
 numpy>=1.24
 pytest>=7.0
-# optional, only for LLM rewriting of supplier messages:
+# supplier website scraping
+requests>=2.31
+beautifulsoup4>=4.12
+lxml>=5.0
+# optional: websites that need JavaScript (then run: playwright install chromium)
+# playwright>=1.45
+# optional, only for LLM rewriting of messages and LLM quote extraction:
 # anthropic>=0.30

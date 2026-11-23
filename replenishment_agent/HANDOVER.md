@@ -31,8 +31,24 @@ SIMULATED send. Level 1 autonomy: the agent prepares, humans decide, nothing lea
 - 39 materials have no supplier history and cannot be ordered.
 - Safety stock assumes roughly normal demand and independent weeks, from 25 weekly points.
 
+## v2: sourcing, RFQs, quotes, delivery tracking (added 2026-11-22)
+| Item | State |
+|---|---|
+| Restock alerts by console / email / webhook / Telegram, no repeats unless worse | Done, tested (dry run) |
+| Website scraping of supplier catalogs, match to our materials, contacts found | Done, tested on demo pages; no real site configured yet |
+| RFQ per supplier, maker-checker, email or web-form text | Done, tested (dry run) |
+| Reading replies (EN/AR, pipe format or free text), confirmation, comparison | Done, tested |
+| PO from the best confirmed quote, emailed (dry run) | Done, tested |
+| Delivery tracking: events, shipped quantities, durations, late/short/unconfirmed, scorecard | Done, tested |
+| Observed lead times replace history lead times after 3 delivered orders | Done |
+| Real SMTP/IMAP, carrier tracking APIs, LLM quote extraction, JavaScript sites (Playwright) | Written, NOT tested live |
+| 37 automated tests | Passing |
+
+Still to confirm: each supplier's email / RFQ form (`suppliers_contacts.json`), catalog URLs and selectors
+(`supplier_sites.json`), each website's terms of use for scraping, the mailbox to use, and the carrier APIs.
+
 ## Not in this version
-Negotiation agent, delivery and exception agent, Copilot, RAG over policies, quote document extraction, real emails.
+Negotiation agent, Copilot, RAG over policies, quote PDF/Excel attachment extraction, automatic web-form submission.
 
 ## Next steps
 1. Send the confirmation questions above and agree the API endpoints.

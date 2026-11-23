@@ -14,13 +14,20 @@ Usage (always on a COPY of the database):
 from __future__ import annotations
 import argparse, hashlib, json, sys
 
+import numpy as np
 import pandas as pd
 
 import planning as pl
 import workflow as wf
 import drafter
+import quotes
+import store
+import tracking
+import ops
+import rfq
+import scraper
 from config import Config
-from db import connect, now_utc
+from db import connect, now_utc, tx as store_tx
 
 METHOD = "reorder_point_v1"
 CAVEATS = [
@@ -36,6 +43,7 @@ class ReplenishmentAgent:
     def __init__(self, cfg: Config, llm=None):
         self.cfg, self.llm = cfg, llm
         self.con = connect(cfg.db_path)
+        store.ensure_schema(self.con)
         self.env_id = wf.ensure_environment(self.con, cfg.environment, cfg.agent_actor,
                                             "replenishment agent sandbox")
         self.loc_id = wf.ensure_location(self.con, self.env_id, "RAW_MATERIAL_WH")
@@ -48,8 +56,21 @@ class ReplenishmentAgent:
         mat_w = pl.material_weekly(weekly, bom, pl.scrap_rates(self.con),
                                    self.cfg.policy["apply_scrap_allowance"])
         src = pl.sourcing(self.con, self.cfg.aliases)
+        if self.cfg.policy.get("use_observed_lead_times"):
+            src = self._observed_leads(src)
         kinds = bom.drop_duplicates("material").set_index("material")["kind"].to_dict()
         return dict(bom=bom, warnings=warns, weekly=weekly, mat_w=mat_w, src=src, kinds=kinds)
+
+    def _observed_leads(self, src):
+        """Replace RFQ-history lead times with lead times measured by delivery tracking, once there are enough."""
+        obs, n_min = tracking.observed_lead_times(self.con, self.env_id), self.cfg.policy.get("observed_lead_min_orders", 3)
+        src = src.copy()
+        for material, row in src.iterrows():
+            days = obs.get((row["supplier_id"], material), [])
+            if len(days) >= n_min:
+                src.loc[material, "lead_mean"] = float(np.mean(days))
+                src.loc[material, "lead_sd"] = float(np.std(days))
+        return src
 
     def _stock_item(self, material):
         r = self.con.execute("SELECT stock_item_id FROM stock_items WHERE identity_reference=?", (material,)).fetchone()
@@ -139,7 +160,9 @@ class ReplenishmentAgent:
     def approve_request(self, pr_id, by, note="approved", approve=True):
         return wf.decide_purchase_request(self.con, pr_id, approve, by, note)
 
-    def make_purchase_orders(self, pr_id):
+    def make_purchase_orders(self, pr_id, use_quotes=True):
+        """One draft PO per supplier. Where a person has confirmed a supplier quote for a line, the best confirmed
+        quote sets supplier, price and lead time; other lines keep the estimate from purchase history."""
         rec = self.con.execute("SELECT r.proposal_json FROM purchase_requests p JOIN recommendations r "
                                "USING(recommendation_id) WHERE p.purchase_request_id=?", (pr_id,)).fetchone()
         if rec is None:
@@ -147,7 +170,48 @@ class ReplenishmentAgent:
         prop = json.loads(rec[0])
         sourcing = {l["stock_item_id"]: dict(l, price_piastres=l["price_piastres"], price_basis=l["price_basis"])
                     for l in prop["lines"]}
-        return wf.create_purchase_orders(self.con, pr_id, sourcing, prop["as_of"], self.cfg.agent_actor)
+        chosen = quotes.selection(self.con, pr_id) if use_quotes else {}
+        sourcing.update(chosen)
+        po_ids = wf.create_purchase_orders(self.con, pr_id, sourcing, prop["as_of"], self.cfg.agent_actor)
+        with store_tx(self.con):
+            for po_id in po_ids:
+                for (sid,) in self.con.execute("SELECT stock_item_id FROM purchase_order_lines WHERE purchase_order_id=?",
+                                               (po_id,)).fetchall():
+                    if sid in chosen:
+                        self.con.execute("INSERT OR IGNORE INTO ext_po_quote_links(purchase_order_id,quote_id) VALUES (?,?)",
+                                         (po_id, chosen[sid]["quote_id"]))
+        return po_ids
+
+    def send_purchase_order(self, po_id, by, mailer, at=None):
+        """Email the approved PO to the supplier (dry run unless messaging mode is live) and start tracking it."""
+        po = self.con.execute("SELECT * FROM purchase_orders WHERE purchase_order_id=?", (po_id,)).fetchone()
+        if po is None:
+            raise wf.WorkflowError("purchase order not found")
+        if po["status"] != "approved":
+            raise wf.WorkflowError(f"purchase order is {po['status']}; expected ('approved',)")
+        name = self.con.execute("SELECT supplier_name FROM suppliers WHERE supplier_id=?", (po["supplier_id"],)).fetchone()[0]
+        c = self.cfg.contacts.get(po["supplier_id"], {})
+        lines = [dict(material=r["material_reference"].removeprefix("MAT:"), qty=r["quantity_base_units"],
+                      unit=r["base_unit_snapshot"], delivery_date=r["expected_delivery_date"],
+                      price_egp=r["quoted_price_piastres"] / 100 * (1000 / r["price_basis_quantity_base_units"]
+                                                                    if r["base_unit_snapshot"] == "g" else
+                                                                    1 / r["price_basis_quantity_base_units"]))
+                 for r in self.con.execute("SELECT * FROM purchase_order_lines WHERE purchase_order_id=? "
+                                           "ORDER BY line_number", (po_id,))]
+        for l in lines:      # the supplier's own name/code, as in the RFQ
+            l["supplier_name"], l["supplier_code"] = scraper.supplier_name_for(self.con, po["supplier_id"], l["material"])
+        subject, body = drafter.po_message(name.split(" (")[0], po["po_number"], lines, c.get("language", "en"))
+        if c.get("email"):
+            st = mailer.send_email(self.con, "purchase_order", po["po_number"], c["email"], subject, body)
+            if st == "failed":
+                raise wf.WorkflowError("email failed; see ext_outbox.error")
+            reason = "emailed to supplier" if st == "sent" else "DRY RUN: PO email written to outbox only"
+        else:
+            path = mailer.save_manual(self.con, "purchase_order", po["po_number"], c.get("website"), subject, body)
+            reason = f"no supplier email configured: PO text saved for manual sending ({path})"
+        wf.mark_purchase_order_sent(self.con, po_id, by, reason)
+        tracking.record(self.con, po_id, "sent", by, at=at, source="agent", note=reason)
+        return reason
 
     # ---------------------------------------------------------------- demo stock (sandbox only)
     def seed_demo_stock(self, maker="sandbox_seed", checker="sandbox_seed_approver"):
@@ -213,8 +277,11 @@ def main(argv=None):
     for name in ("approve", "reject"):
         s = sub.add_parser(name); s.add_argument("--pr", type=int, required=True); s.add_argument("--by", required=True)
     s = sub.add_parser("po"); s.add_argument("--pr", type=int, required=True)
-    for name in ("po-approve", "po-send"):
-        s = sub.add_parser(name); s.add_argument("--po", type=int, required=True); s.add_argument("--by", required=True)
+    s = sub.add_parser("po-approve"); s.add_argument("--po", type=int, required=True); s.add_argument("--by", required=True)
+    s = sub.add_parser("po-send"); s.add_argument("--po", type=int, required=True); s.add_argument("--by", required=True)
+    s.add_argument("--at", help="send date for the tracking clock (default: now)")
+    s.add_argument("--simulated", action="store_true", help="old behaviour: status change only, no message")
+    ops.register(sub)
     a = p.parse_args(argv)
     ag = ReplenishmentAgent(Config(db_path=a.db, environment=a.env, as_of=a.as_of))
     if a.cmd == "seed":
@@ -223,19 +290,24 @@ def main(argv=None):
         res = ag.run(); print(format_report(res))
         for sid, d in res["drafts"].items():
             print(f"\n--- draft message for {sid} (en, source={d['en']['source']}) ---\n{d['en']['text']}")
+        print(f"\nrestock alerts sent: {ops.services(ag)[1].restock(res)}")
     elif a.cmd in ("approve", "reject"):
         print(ag.approve_request(a.pr, a.by, approve=a.cmd == "approve"))
     elif a.cmd == "po":
         print("draft purchase orders:", ag.make_purchase_orders(a.pr))
     elif a.cmd == "po-approve":
         wf.approve_purchase_order(ag.con, a.po, a.by); print("approved")
-    elif a.cmd == "po-send":
+    elif a.cmd == "po-send" and a.simulated:
         wf.send_purchase_order_simulated(ag.con, a.po, a.by); print("sent (SIMULATED, nothing transmitted)")
+    elif a.cmd == "po-send":
+        print(ag.send_purchase_order(a.po, a.by, ops.services(ag)[0], at=a.at))
+    else:
+        ops.handle(a, ag)
 
 
 if __name__ == "__main__":
     try:
         main()
-    except wf.WorkflowError as e:          # a rule refused the action: show it plainly, no traceback
+    except (wf.WorkflowError, rfq.RFQError, quotes.QuoteError, tracking.TrackingError) as e:   # a rule refused
         print(f"REFUSED: {e}", file=sys.stderr)
         sys.exit(1)

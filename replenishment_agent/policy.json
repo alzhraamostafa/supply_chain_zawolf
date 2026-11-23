@@ -6,6 +6,9 @@
   "sigma_weeks": 13,
   "apply_scrap_allowance": true,
   "autonomy_level": 1,
+  "rfq_max_suppliers_per_material": 3,
+  "use_observed_lead_times": true,
+  "observed_lead_min_orders": 3,
   "approval_bands_egp": [
     {"max": 100000,  "role": "buyer"},
     {"max": 1000000, "role": "procurement_manager"},

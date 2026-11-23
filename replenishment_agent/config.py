@@ -8,6 +8,10 @@ def _load(name):
     with open(os.path.join(HERE, name), encoding="utf-8") as f:
         return {k: v for k, v in json.load(f).items() if not k.startswith("_")}
 
+
+def _load_opt(name):
+    return _load(name) if os.path.exists(os.path.join(HERE, name)) else {}
+
 @dataclass
 class Config:
     db_path: str
@@ -16,6 +20,9 @@ class Config:
     agent_actor: str = "replenishment_agent"
     policy: dict = field(default_factory=lambda: _load("policy.json"))
     aliases: dict = field(default_factory=lambda: _load("material_aliases.json"))
+    messaging: dict = field(default_factory=lambda: _load_opt("messaging.json"))
+    contacts: dict = field(default_factory=lambda: _load_opt("suppliers_contacts.json"))
+    sites: dict = field(default_factory=lambda: _load_opt("supplier_sites.json"))
 
     def approval_role(self, total_egp: float) -> str:
         for band in self.policy["approval_bands_egp"]:

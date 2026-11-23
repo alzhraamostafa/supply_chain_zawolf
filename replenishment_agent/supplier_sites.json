@@ -1,0 +1,123 @@
+{
+  "_note": "Catalog pages to scrape per supplier. Leave start_urls empty to skip. item_selector/name_selector/code_selector are CSS selectors (inspect the page in the browser: right click > Inspect). Without them a generic extractor is used. render: static (plain HTML) | browser (JavaScript sites; needs `pip install playwright` and `playwright install chromium`). Check each site's terms of use first.",
+  "SUP-EG-01": {
+    "_name": "El-Nasr Chemicals Co.",
+    "start_urls": [],
+    "item_selector": "",
+    "name_selector": "",
+    "code_selector": "",
+    "next_selector": "",
+    "render": "static",
+    "max_pages": 20,
+    "delay_seconds": 2.0,
+    "match_threshold": 0.6
+  },
+  "SUP-EG-02": {
+    "_name": "BASF Cairo Specialities",
+    "start_urls": [],
+    "item_selector": "",
+    "name_selector": "",
+    "code_selector": "",
+    "next_selector": "",
+    "render": "static",
+    "max_pages": 20,
+    "delay_seconds": 2.0,
+    "match_threshold": 0.6
+  },
+  "SUP-EG-03": {
+    "_name": "Symrise Egypt Fragrance Compounds",
+    "start_urls": [],
+    "item_selector": "",
+    "name_selector": "",
+    "code_selector": "",
+    "next_selector": "",
+    "render": "static",
+    "max_pages": 20,
+    "delay_seconds": 2.0,
+    "match_threshold": 0.6
+  },
+  "SUP-EG-04": {
+    "_name": "Clariant Chemicals Egypt",
+    "start_urls": [],
+    "item_selector": "",
+    "name_selector": "",
+    "code_selector": "",
+    "next_selector": "",
+    "render": "static",
+    "max_pages": 20,
+    "delay_seconds": 2.0,
+    "match_threshold": 0.6
+  },
+  "SUP-EG-05": {
+    "_name": "Middle East Aluminum Packaging",
+    "start_urls": [],
+    "item_selector": "",
+    "name_selector": "",
+    "code_selector": "",
+    "next_selector": "",
+    "render": "static",
+    "max_pages": 20,
+    "delay_seconds": 2.0,
+    "match_threshold": 0.6
+  },
+  "SUP-EG-06": {
+    "_name": "Technopack Plastic & Lamitubes",
+    "start_urls": [],
+    "item_selector": "",
+    "name_selector": "",
+    "code_selector": "",
+    "next_selector": "",
+    "render": "static",
+    "max_pages": 20,
+    "delay_seconds": 2.0,
+    "match_threshold": 0.6
+  },
+  "SUP-EG-07": {
+    "_name": "Pyramids Modern Plastics Co.",
+    "start_urls": [],
+    "item_selector": "",
+    "name_selector": "",
+    "code_selector": "",
+    "next_selector": "",
+    "render": "static",
+    "max_pages": 20,
+    "delay_seconds": 2.0,
+    "match_threshold": 0.6
+  },
+  "SUP-EG-08": {
+    "_name": "Delta Molds & Closures Ltd",
+    "start_urls": [],
+    "item_selector": "",
+    "name_selector": "",
+    "code_selector": "",
+    "next_selector": "",
+    "render": "static",
+    "max_pages": 20,
+    "delay_seconds": 2.0,
+    "match_threshold": 0.6
+  },
+  "SUP-EG-09": {
+    "_name": "Nile Roll-On Spheres & Assemblies",
+    "start_urls": [],
+    "item_selector": "",
+    "name_selector": "",
+    "code_selector": "",
+    "next_selector": "",
+    "render": "static",
+    "max_pages": 20,
+    "delay_seconds": 2.0,
+    "match_threshold": 0.6
+  },
+  "SUP-EG-10": {
+    "_name": "El-Shorouk Carton & Corrugated Packaging",
+    "start_urls": [],
+    "item_selector": "",
+    "name_selector": "",
+    "code_selector": "",
+    "next_selector": "",
+    "render": "static",
+    "max_pages": 20,
+    "delay_seconds": 2.0,
+    "match_threshold": 0.6
+  }
+}

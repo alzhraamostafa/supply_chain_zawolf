@@ -1,0 +1,30 @@
+{
+  "_note": "mode dry_run = nothing leaves the machine (messages go to outbox/). live = real SMTP/IMAP/webhooks. Env AGENT_SEND_MODE overrides. Secrets ONLY in environment variables named below.",
+  "mode": "dry_run",
+  "outbox_dir": "outbox",
+  "inbox_dir": "inbox",
+  "from_address": "",
+  "smtp": {
+    "host": "",
+    "port": 587,
+    "user": "",
+    "password_env": "AGENT_SMTP_PASSWORD",
+    "starttls": true
+  },
+  "imap": {
+    "host": "",
+    "user": "",
+    "password_env": "AGENT_IMAP_PASSWORD",
+    "folder": "INBOX"
+  },
+  "alerts": {
+    "email_to": [],
+    "webhook_url_env": "AGENT_ALERT_WEBHOOK",
+    "telegram_token_env": "AGENT_TELEGRAM_TOKEN",
+    "telegram_chat_id": "",
+    "repeat_hours": 24
+  },
+  "rfq_reply_days": 3,
+  "ack_expected_days": 2,
+  "carriers": {}
+}

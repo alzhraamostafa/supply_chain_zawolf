@@ -1,0 +1,93 @@
+{
+  "_note": "Fill in for every supplier. rfq_channel: email (agent emails the RFQ) | web_form (agent prepares the text, a person submits it on form_url) | manual (phone/WhatsApp). language: en | ar. Run `python agent.py --db work.db contacts-found` after scraping to see emails/forms found on their websites.",
+  "SUP-EG-01": {
+    "_name": "El-Nasr Chemicals Co.",
+    "email": "",
+    "website": "",
+    "form_url": "",
+    "phone": "",
+    "rfq_channel": "manual",
+    "language": "ar"
+  },
+  "SUP-EG-02": {
+    "_name": "BASF Cairo Specialities",
+    "email": "",
+    "website": "",
+    "form_url": "",
+    "phone": "",
+    "rfq_channel": "manual",
+    "language": "ar"
+  },
+  "SUP-EG-03": {
+    "_name": "Symrise Egypt Fragrance Compounds",
+    "email": "",
+    "website": "",
+    "form_url": "",
+    "phone": "",
+    "rfq_channel": "manual",
+    "language": "ar"
+  },
+  "SUP-EG-04": {
+    "_name": "Clariant Chemicals Egypt",
+    "email": "",
+    "website": "",
+    "form_url": "",
+    "phone": "",
+    "rfq_channel": "manual",
+    "language": "ar"
+  },
+  "SUP-EG-05": {
+    "_name": "Middle East Aluminum Packaging",
+    "email": "",
+    "website": "",
+    "form_url": "",
+    "phone": "",
+    "rfq_channel": "manual",
+    "language": "ar"
+  },
+  "SUP-EG-06": {
+    "_name": "Technopack Plastic & Lamitubes",
+    "email": "",
+    "website": "",
+    "form_url": "",
+    "phone": "",
+    "rfq_channel": "manual",
+    "language": "ar"
+  },
+  "SUP-EG-07": {
+    "_name": "Pyramids Modern Plastics Co.",
+    "email": "",
+    "website": "",
+    "form_url": "",
+    "phone": "",
+    "rfq_channel": "manual",
+    "language": "ar"
+  },
+  "SUP-EG-08": {
+    "_name": "Delta Molds & Closures Ltd",
+    "email": "",
+    "website": "",
+    "form_url": "",
+    "phone": "",
+    "rfq_channel": "manual",
+    "language": "ar"
+  },
+  "SUP-EG-09": {
+    "_name": "Nile Roll-On Spheres & Assemblies",
+    "email": "",
+    "website": "",
+    "form_url": "",
+    "phone": "",
+    "rfq_channel": "manual",
+    "language": "ar"
+  },
+  "SUP-EG-10": {
+    "_name": "El-Shorouk Carton & Corrugated Packaging",
+    "email": "",
+    "website": "",
+    "form_url": "",
+    "phone": "",
+    "rfq_channel": "manual",
+    "language": "ar"
+  }
+}
