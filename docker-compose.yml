@@ -30,5 +30,25 @@ services:
     volumes:
       - ./data:/data:ro
 
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      SANDBOX_MODE: "true"
+      AUDIT_DB_PATH: /state/audit.db
+      PLANT_DB_PATH: /data/logistic_in_cosmatic.db
+    volumes:
+      - apistate:/state
+      - ./data:/data:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   pgdata:
+  apistate:
