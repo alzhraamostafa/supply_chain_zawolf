@@ -1,14 +1,14 @@
 """HTTP layer. Thin on purpose: all rules live in api/service.py.
 Identity comes from three headers (X-User-Id, X-Org-Id, X-Role): a sandbox stand-in for real login."""
 import os
-
+from datetime import date
 from fastapi import Depends, FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
 
 from common.access import AccessDenied, Principal
 from common.approval import ApprovalError
 from common.sandbox import is_sandbox
-
+from .delivery_service import DeliveryService
 from .service import ApiService, Forbidden, NotFound, Unavailable
 
 
@@ -32,6 +32,27 @@ class RiskIn(BaseModel):
     cover_days: dict[str, float] = Field(default_factory=dict)   # material -> days of supply
     level: str | None = None
     limit: int | None = None
+
+
+class ShipmentIn(BaseModel):
+    po_number: str = Field(min_length=1)
+    material: str = Field(min_length=1)
+    supplier: str = Field(min_length=1)
+    ordered_qty: float = Field(gt=0)
+    promised_date: date
+    original_needed_by: date
+    needed_by: date
+    eta: date | None = None
+    received_qty: float | None = Field(default=None, ge=0)
+    received_date: date | None = None
+    quality_ok: bool | None = None
+    criticality: float | None = Field(default=None, ge=0, le=1)
+    alternative_suppliers: int | None = Field(default=None, ge=0)
+
+
+class DeliveryIn(BaseModel):
+    shipments: list[ShipmentIn] = Field(min_length=1)
+    today: date | None = None
 
 
 def get_principal(x_user_id: str | None = Header(None), x_org_id: str | None = Header(None),
@@ -59,7 +80,9 @@ def call(fn, *args):
 def create_app(service: ApiService | None = None) -> FastAPI:
     svc = service or ApiService(os.environ.get("AUDIT_DB_PATH", "audit.db"),
                                 os.environ.get("PLANT_DB_PATH"))
+    delivery = DeliveryService(svc.audit, svc.plant_db_path)
     app = FastAPI(title="Supply Chain Platform API", version="0.2.0")
+    
 
     @app.get("/health")
     def health():
@@ -96,5 +119,9 @@ def create_app(service: ApiService | None = None) -> FastAPI:
     @app.post("/risk/assess")
     def risk_with_stock(body: RiskIn, who: Principal = Depends(get_principal)):
         return call(svc.assess_risk, who, body.cover_days, body.level, body.limit)
+
+    @app.post("/delivery/assess")
+    def delivery_assess(body: DeliveryIn, who: Principal = Depends(get_principal)):
+        return call(delivery.assess, who, [s.model_dump() for s in body.shipments], body.today)
 
     return app
