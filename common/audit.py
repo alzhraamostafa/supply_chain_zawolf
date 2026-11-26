@@ -28,6 +28,9 @@ class AuditLog:
         self.con = sqlite3.connect(path, check_same_thread=False)
         self._lock = threading.Lock()
         self.con.executescript(SCHEMA)
+        
+    def close(self) -> None:
+        self.con.close()
 
     def record(self, actor, action, input_ref=None, output_ref=None,
                approval_status="not_required") -> int:
