@@ -31,10 +31,16 @@ class Unavailable(Exception):
 class ApiService:
     def __init__(self, audit_path: str = ":memory:", plant_db_path: str | None = None):
         self.audit = AuditLog(audit_path)
-        self.approvals = ApprovalWorkflow(self.audit)
-        self.quotes = QuoteStore(self.audit)
+        self.approvals = ApprovalWorkflow(self.audit, db_path=audit_path)
+        self.quotes = QuoteStore(self.audit, db_path=audit_path)
         self.plant_db_path = plant_db_path
         self._lock = threading.RLock()
+
+
+    def close(self) -> None:
+        self.quotes.close()
+        self.approvals.close()
+        self.audit.close()
 
     def _require(self, principal: Principal, roles, action: str) -> None:
         if principal.role not in roles:
@@ -50,7 +56,7 @@ class ApiService:
                         reason: str | None = None) -> dict:
         with self._lock:
             self._require(principal, BUYER_ROLES, "decide_approval")
-            if request_id not in self.approvals.requests:
+            if self.approvals.get(request_id) is None:
                 raise NotFound("approval request not found")
             return asdict(self.approvals.decide(request_id, principal.user_id, principal.role,
                                                 approve, reason))
