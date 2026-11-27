@@ -1,0 +1,36 @@
+{
+  "description": "Only source-provided target is enabled by default. Add approved targets after sign-off with the business owner.",
+  "targets": {
+    "oee": {
+      "value": 0.8,
+      "unit": "ratio",
+      "source": "fact_production_shifts.target_oee",
+      "status": "source_defined"
+    },
+    "gross_profit_margin": {
+      "value": null,
+      "unit": "ratio",
+      "status": "requires_business_approval"
+    },
+    "forecast_accuracy": {
+      "value": null,
+      "unit": "ratio",
+      "status": "requires_business_approval"
+    },
+    "scrap_rate": {
+      "value": null,
+      "unit": "ratio",
+      "status": "requires_business_approval"
+    },
+    "on_time_delivery": {
+      "value": null,
+      "unit": "ratio",
+      "status": "requires_business_approval"
+    },
+    "supplier_quality_yield": {
+      "value": null,
+      "unit": "ratio",
+      "status": "requires_business_approval"
+    }
+  }
+}

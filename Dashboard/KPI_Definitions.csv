@@ -1,0 +1,12 @@
+﻿KPI,Formula,Source,Unit,Status / caveat
+Demanded Units,SUM(actual_orders_demanded_pcs),fact_commercial_demand_m5,units,Period-filtered
+Gross Revenue,SUM(gross_wholesale_revenue_egp),fact_commercial_demand_m5,EGP,Period-filtered
+Gross Profit Margin,SUM(net_gross_profit_egp)/SUM(gross_wholesale_revenue_egp),fact_commercial_demand_m5,ratio,Ratio of sums
+Historical Forecast Accuracy,SUM(accuracy*demand)/SUM(demand),ai_forecast_accuracy_rate + actual_orders_demanded_pcs,ratio,"Legacy dataset field, not new model"
+Mean Shift OEE,AVG(oee),fact_production_shifts,ratio,Source scale 0–1; source target_oee available
+Weighted Scrap Rate,SUM(scrap)/(SUM(good)+SUM(scrap)),fact_production_shifts,ratio,Candidate formula; owner sign-off required
+On-Time Delivery,Compliant On-Time / all dispatches,fact_lastmile_fleet_dispatch,ratio,Categories verified in supplied DB
+Supplier Quality Yield,AVG(supplier_quality_yield_rate),fact_procurement_rfq,ratio,Simple mean; consider weighting by received quantity if available
+Actual Lead Time,AVG(actual_delivered_lead_time_days),fact_procurement_rfq,days,Filter by rfq_date
+FEFO Risk,Group lots by inventory_health_status,vw_fefo_expiry_risk,lots,Historical snapshot; not live
+Payload Utilization,AVG(payload_capacity_utilization_pct),fact_lastmile_fleet_dispatch,ratio,Do not trust until >100% outliers are investigated
